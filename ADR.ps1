@@ -1,4 +1,4 @@
-﻿#
+#
 # Press 'F5' to run this script. Running this script will load the ConfigurationManager
 # module for Windows PowerShell and will connect to the site.
 #
@@ -116,7 +116,7 @@ $SecOnlySUGName = "$year-$month - OS - Sec Only"
 $MQRNETSUGName = "$year-$month - NET - MQR"
 $SecOnlyNETSUGName = "$year-$month - NET - Sec Only"
 
-#Patch to store Deployment Package data
+#Path to store the output file
 $resultExcelPath = "$env:SystemDrive\temp\$month-$year.xlsx"
 
 #Delete if the file exists previously
@@ -133,24 +133,25 @@ Get-CMSoftwareUpdate -Fast -Category $cat -DatePostedMin $patchTuesdayValue -IsS
 Select-Object ArticleID,LocalizedDisplayName,DatePosted,DateRevised,IsDeployed,IsSuperseded,NumTotal,NumMissing,NumPresent,NumUnknown,PercentCompliant,MaxExecutionTime,LocalizedInformativeURL |
 Export-Excel -Path $resultExcelPath -AutoSize -AutoFilter -WorksheetName 'MEMCM Data' -ConditionalText $MQRNaming1, $MQRNaming2, $MQRNaming3, $SecNaming, $MQRNaming4
 
-#Getting the software updates released after patch Tuesday and Exporting the result to xlsx
+#Getting the software updates inside the Monthly Quality Rollup SUG Exporting the result to xlsx
 Get-CMSoftwareUpdate -Fast -UpdateGroupName $MQRSUGName | 
 Select-Object ArticleID,LocalizedDisplayName,DatePosted,DateRevised,IsDeployed,IsSuperseded,NumTotal,NumMissing,NumPresent,NumUnknown,PercentCompliant,MaxExecutionTime,LocalizedInformativeURL |
 Export-Excel -Path $resultExcelPath -AutoSize -AutoFilter -WorksheetName 'ADR - OS - MQR' -Append -ConditionalText $MQRNaming1, $MQRNaming2, $MQRNaming3, $SecNaming, $MQRNaming4
 
-#Getting the software updates released after patch Tuesday and Exporting the result to xlsx
+#Getting the software updates inside the Security-only Updates SUG Exporting the result to xlsx
 Get-CMSoftwareUpdate -Fast -UpdateGroupName $SecOnlySUGName | 
 Select-Object ArticleID,LocalizedDisplayName,DatePosted,DateRevised,IsDeployed,IsSuperseded,NumTotal,NumMissing,NumPresent,NumUnknown,PercentCompliant,MaxExecutionTime,LocalizedInformativeURL |
 Export-Excel -Path $resultExcelPath -AutoSize -AutoFilter -WorksheetName 'ADR - OS - Sec' -Append -ConditionalText $MQRNaming1, $MQRNaming2, $MQRNaming3, $SecNaming, $MQRNaming4
 
-#Getting the software updates released after patch Tuesday and Exporting the result to xlsx
+#Getting the software updates inside the .NET Monthly Quality Rollup SUG Exporting the result to xlsx
 Get-CMSoftwareUpdate -Fast -UpdateGroupName $MQRNETSUGName | 
 Select-Object ArticleID,LocalizedDisplayName,DatePosted,DateRevised,IsDeployed,IsSuperseded,NumTotal,NumMissing,NumPresent,NumUnknown,PercentCompliant,MaxExecutionTime,LocalizedInformativeURL |
 Export-Excel -Path $resultExcelPath -AutoSize -AutoFilter -WorksheetName 'ADR - NET - MQR' -Append -ConditionalText $MQRNaming1, $MQRNaming2, $MQRNaming3, $SecNaming, $MQRNaming4
 
-#Getting the software updates released after patch Tuesday and Exporting the result to xlsx
+#Getting the software updates inside the .NET Security Only Updates SUG Exporting the result to xlsx
 Get-CMSoftwareUpdate -Fast -UpdateGroupName $SecOnlyNETSUGName | 
 Select-Object ArticleID,LocalizedDisplayName,DatePosted,DateRevised,IsDeployed,IsSuperseded,NumTotal,NumMissing,NumPresent,NumUnknown,PercentCompliant,MaxExecutionTime,LocalizedInformativeURL |
 Export-Excel -Path $resultExcelPath -AutoSize -AutoFilter -WorksheetName 'ADR - NET - Sec' -Append -ConditionalText $MQRNaming1, $MQRNaming2, $MQRNaming3, $SecNaming, $MQRNaming4
 
+#Sending the mail to the team with the file attached
 Send-MailMessage -From 'Senders email address' -To 'Receivers email address' -Subject "Monthly Patches for $month - $year" -Body "Please find the file attached." -Attachments $resultExcelPath -Priority High -DeliveryNotificationOption OnSuccess, OnFailure -SmtpServer 'smtp server address'
